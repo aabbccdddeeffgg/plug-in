@@ -9,7 +9,11 @@
   "content_scripts": [
     {
       "matches": ["https://kns.cnki.net/kcms2/article/*"],
-      "js": ["content.js"]
+      "js": ["article_content.js"]
+    },
+    {
+      "matches": ["https://kns.cnki.net/kns8s/*"],
+      "js": ["search_content.js"]
     }
   ],
   "host_permissions": ["<all_urls>"],
