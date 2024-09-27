@@ -1,44 +1,146 @@
-window.onload = function() {
+window.onload = function () {
+    const MAX_NODES = 7; // 最大节点数量
     const searchInput = document.getElementById("txt_search"); // 获取 id 为 txt_search 的输入框
     const searchButtons1 = document.getElementsByClassName("search-btn"); // 获取类名为 search-btn 的搜索按钮
-    const searchButton1 = searchButtons1[0]; 
+    const searchButton1 = searchButtons1[0];
     const searchButtons2 = document.getElementsByClassName("btn-result-search"); // 获取类名为 btn-result-search 的"结果中搜索"按钮
-    const searchButton2 = searchButtons2[0]; 
-    
-    createPicture(searchInput.value); //这里直接把首页搜索的内容插入节点
-    
+    const searchButton2 = searchButtons2[0];
+  
     if (searchInput && searchButton1 && searchButton2) { // 确保元素存在
-        // 监听输入框的键盘事件
-        searchInput.addEventListener('keypress', function(event) {
-            if (event.key === 'Enter') {
-                handleSearch(event);
-            }
-        });
-        // 监听按钮的点击事件
-        searchButton1.addEventListener('click', function(event) {
-            handleSearch(event);
-        });
-        // 监听按钮的点击事件
-        searchButton2.addEventListener('click', function(event) {
-            handleSearch(event);
-        });
-    }
-    function inseartPicture() {
-        //实现图片插入，图片应该为静态的
-    }
-    function createPicture(userInput) {
-        //实现插入节点
-        const imgElement = document.createElement('h1');
-        imgElement.innerText = userInput;
-        const insertPoint = document.getElementById("ModuleSearch");
-        if (insertPoint) {
-            insertPoint.parentNode.insertBefore(imgElement, insertPoint.nextSibling); // 插入到搜索框的下方
+      searchInput.addEventListener('keypress', function (event) {
+        if (event.key === 'Enter') {
+          handleSearch();
         }
+      });
+  
+      searchButton1.addEventListener('click', handleSearch);
+      searchButton2.addEventListener('click', handleSearch);
     }
+  
+    // 页面加载后从存储中获取节点数据并绘制图形
+    chrome.storage.local.get(['nodes'], function (result) {
+      const nodes = result.nodes || [];
+      createPicture(nodes);
+    });
+  
+    function createPicture(nodes) {
+      // 如果SVG已经存在，移除它以便重新绘制
+      d3.select("svg").remove();
+  
+      // 创建SVG容器
+      const svg = d3.select("body")
+        .append("svg")
+        .attr("width", 600)
+        .attr("height", 400)
+        .style("position", "fixed")
+        .style("top", "100px")
+        .style("left", "50px")
+        .style("background-color", "#f0f0f0");
+  
+      // 创建边的数据，连接所有节点
+      const links = [];
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          links.push({ source: i, target: j });
+        }
+      }
+  
+      // 定义力学仿真
+      const simulation = d3.forceSimulation(nodes)
+        .force("charge", d3.forceManyBody().strength(-200))
+        .force("center", d3.forceCenter(300, 200))
+        .force("link", d3.forceLink(links).distance(100))
+        .on("tick", ticked);
+  
+      // 绘制边
+      const link = svg.selectAll(".link")
+        .data(links)
+        .enter()
+        .append("line")
+        .attr("class", "link")
+        .attr("stroke", "#999")
+        .attr("stroke-opacity", 0.6)
+        .attr("stroke-width", 2);
+  
+      // 绘制节点
+      const node = svg.selectAll(".node")
+        .data(nodes)
+        .enter()
+        .append("circle")
+        .attr("class", "node")
+        .attr("r", 10)
+        .attr("fill", "#69b3a2")
+        .call(drag(simulation));
+  
+      // 添加节点标签
+      const labels = svg.selectAll(".text")
+        .data(nodes)
+        .enter()
+        .append("text")
+        .attr("font-size", "12px")
+        .attr("fill", "#333")
+        .text(d => d.name);
+  
+      // 更新节点和边的位置
+      function ticked() {
+        link
+          .attr("x1", d => d.source.x)
+          .attr("y1", d => d.source.y)
+          .attr("x2", d => d.target.x)
+          .attr("y2", d => d.target.y);
+  
+        node
+          .attr("cx", d => d.x)
+          .attr("cy", d => d.y);
+  
+        labels
+          .attr("x", d => d.x + 12)
+          .attr("y", d => d.y);
+      }
+  
+      // 拖拽功能
+      function drag(simulation) {
+        return d3.drag()
+          .on("start", (event, d) => {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+          })
+          .on("drag", (event, d) => {
+            d.fx = event.x;
+            d.fy = event.y;
+          })
+          .on("end", (event, d) => {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+          });
+      }
+    }
+  
     // 处理搜索逻辑的函数
-    function handleSearch(event) {
-        const userInput = event.target === searchInput ? event.target.value : searchInput.value;
-        createPicture(userInput);
+    function handleSearch() {
+      const userInput = searchInput.value.trim();
+      if (!userInput) return;
+  
+      // 从存储中获取当前节点数据
+      chrome.storage.local.get(['nodes'], function (result) {
+        let nodes = result.nodes || [];
+  
+        // 如果节点数已达最大值，删除最早的节点
+        if (nodes.length >= MAX_NODES) {
+          nodes.shift();
+        }
+  
+        // 添加新节点
+        nodes.push({ name: userInput });
+  
+        // 更新存储中的节点数据
+        chrome.storage.local.set({ nodes }, function () {
+          // 重新绘制图形
+          createPicture(nodes);
+        });
+      });
     }
-}
-
+  };
+  

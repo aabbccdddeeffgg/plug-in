@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "CNKI Article Image Inserter",
   "version": "1.0",
-  "permissions": ["activeTab", "scripting"],
+  "permissions": ["activeTab", "scripting", "storage"],
   "action": {
     "default_popup": "popup.html"
   },
@@ -13,13 +13,14 @@
     },
     {
       "matches": ["https://kns.cnki.net/kns8s/*"],
-      "js": ["search_content.js"]
+      "js": ["d3.v7.min.js", "search_content.js"]
     }
   ],
   "host_permissions": ["<all_urls>"],
   "web_accessible_resources": [{
     "resources": [
-      "image/*.jpg"
+      "image/*.jpg",
+      "d3.v7.min.js"
     ],
     "matches": ["https://kns.cnki.net/*"]
   }]
