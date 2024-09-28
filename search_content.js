@@ -5,7 +5,14 @@ window.onload = function () {
     const searchButton1 = searchButtons1[0];
     const searchButtons2 = document.getElementsByClassName("btn-result-search"); // 获取类名为 btn-result-search 的"结果中搜索"按钮
     const searchButton2 = searchButtons2[0];
-  
+    const ModuleSearch = document.getElementById("ModuleSearch");
+    const firstChild = ModuleSearch.children[0];
+    const secondChild = ModuleSearch.children[1];
+    
+    // 在首页搜索的内容插入
+    handleSearch();
+    
+    // 监听用户输入
     if (searchInput && searchButton1 && searchButton2) { // 确保元素存在
       searchInput.addEventListener('keypress', function (event) {
         if (event.key === 'Enter') {
@@ -17,25 +24,32 @@ window.onload = function () {
       searchButton2.addEventListener('click', handleSearch);
     }
   
-    // 页面加载后从存储中获取节点数据并绘制图形
+    // 从存储中获取节点数据并绘制图形
     chrome.storage.local.get(['nodes'], function (result) {
       const nodes = result.nodes || [];
       createPicture(nodes);
     });
+    
   
     function createPicture(nodes) {
       // 如果SVG已经存在，移除它以便重新绘制
-      d3.select("svg").remove();
-  
+      d3.select("#d3-container").remove();
+      // 插入svg到搜索框下方
+      if(ModuleSearch) {
+        const newdiv = document.createElement('div');
+        newdiv.id = "d3-container";
+        newdiv.style.display = "flex";
+        newdiv.style.alignItems = "center";
+        newdiv.style.justifyContent = "center";
+        ModuleSearch.insertBefore(newdiv, secondChild);
+      }
+      
       // 创建SVG容器
-      const svg = d3.select("body")
+      const svg = d3.select("#d3-container")
         .append("svg")
         .attr("width", 600)
         .attr("height", 400)
-        .style("position", "fixed")
-        .style("top", "100px")
-        .style("left", "50px")
-        .style("background-color", "#f0f0f0");
+        .style("background-color", "white");
   
       // 创建边的数据，连接所有节点
       const links = [];
@@ -98,6 +112,7 @@ window.onload = function () {
           .attr("y", d => d.y);
       }
   
+      
       // 拖拽功能
       function drag(simulation) {
         return d3.drag()
@@ -118,23 +133,28 @@ window.onload = function () {
       }
     }
   
+    
     // 处理搜索逻辑的函数
     function handleSearch() {
       const userInput = searchInput.value.trim();
-      if (!userInput) return;
-  
+      if (!userInput) return; // 如果输入为空，则直接返回
+    
       // 从存储中获取当前节点数据
       chrome.storage.local.get(['nodes'], function (result) {
         let nodes = result.nodes || [];
-  
+    
+        // 检查 userInput 是否已存在于 nodes 中
+        const isDuplicate = nodes.some(node => node.name === userInput);
+        if (isDuplicate) return; // 如果已存在，则不进行任何操作
+    
         // 如果节点数已达最大值，删除最早的节点
         if (nodes.length >= MAX_NODES) {
           nodes.shift();
         }
-  
+    
         // 添加新节点
         nodes.push({ name: userInput });
-  
+    
         // 更新存储中的节点数据
         chrome.storage.local.set({ nodes }, function () {
           // 重新绘制图形
@@ -142,5 +162,6 @@ window.onload = function () {
         });
       });
     }
-  };
+    
+};
   

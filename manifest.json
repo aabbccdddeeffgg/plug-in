@@ -12,7 +12,7 @@
       "js": ["article_content.js"]
     },
     {
-      "matches": ["https://kns.cnki.net/kns8s/*"],
+      "matches": ["https://*/kns8s/defaultresult/*"],
       "js": ["d3.v7.min.js", "search_content.js"]
     }
   ],
