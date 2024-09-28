@@ -8,7 +8,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://kns.cnki.net/kcms2/article/*"],
+      "matches": ["https://*/kcms2/article/*"],
       "js": ["article_content.js"]
     },
     {
