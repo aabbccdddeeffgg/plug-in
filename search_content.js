@@ -6,7 +6,6 @@ window.onload = function () {
     const searchButtons2 = document.getElementsByClassName("btn-result-search"); // 获取类名为 btn-result-search 的"结果中搜索"按钮
     const searchButton2 = searchButtons2[0];
     const ModuleSearch = document.getElementById("ModuleSearch");
-    const firstChild = ModuleSearch.children[0];
     const secondChild = ModuleSearch.children[1];
     
     // 在首页搜索的内容插入
