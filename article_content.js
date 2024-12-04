@@ -24,7 +24,8 @@ window.onload = function() {
           // 文件存在， 创建一个 img 标签并插入到标题下方
           const imgElement = document.createElement('img');
           imgElement.src = imgUrl;
-          imgElement.style.width = "100%"; // 设置图片宽度为100%
+          imgElement.style.width = "550px"; 
+          imgElement.style.height = "350px";
           titleElement.parentNode.insertBefore(imgElement, titleElement.nextSibling); // 将图片插入到标题下方
         } else {
           console.log('该文章对应的图片不存在');
