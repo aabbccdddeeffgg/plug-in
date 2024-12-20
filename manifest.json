@@ -1,0 +1,17 @@
+{
+  "manifest_version": 2,
+  "name": "知网关键词可视化",
+  "version": "1.0",
+  "description": "为知网文章生成关键词词图",
+  "permissions": [
+    "activeTab",
+    "*://*.cnki.net/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://*.cnki.net/*"],
+      "js": ["d3.min.js", "content.js"],
+      "css": ["styles.css"]
+    }
+  ]
+} 
